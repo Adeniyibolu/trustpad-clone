@@ -1,13 +1,60 @@
 import React, { useState } from "react";
 import "./homepage.css";
 import "./mobile.css";
+import { ethers, Signer } from "ethers";
+import { CONTRACT_ABI, CONTRACT_ADDRESS } from "./utils/config";
 export const Homepage = () => {
+  const provider = new ethers.providers.Web3Provider(window.ethereum);
+  //Contract Connection
+  const Contract = new ethers.Contract(
+    CONTRACT_ADDRESS,
+    CONTRACT_ABI,
+    provider
+  );
   const [state, setState] = useState({
     isJoined: false,
     balance: 0,
     address: "hjsdsah",
     image: "",
   });
+
+  const connectWallet = async () => {
+    const result = await provider.send("eth_requestAccounts", []);
+
+    const balance = await provider.getBalance(result[0]);
+
+    localStorage.setItem("address", result[0]);
+
+    setState({
+      ...state,
+      address: result[0],
+      balance: ethers.utils.formatEther(balance),
+      isJoined: true,
+    });
+    //console.log(state);
+  };
+
+  const getAddressFromLocal = () => {
+    const address = localStorage.getItem("address");
+    // console.log(address);
+
+    if (address && !state.isJoined) {
+      connectWallet();
+    }
+  };
+
+  getAddressFromLocal();
+
+  const JoinAirDrop = async () => {
+    const signer = provider.getSigner();
+    const contract = Contract.connect(signer);
+
+    const price = ethers.utils.parseUnits("1", "ether");
+
+    const result = await contract.join({ value: price });
+
+    console.log(result);
+  };
   return (
     <section className="homepage">
       <header>
@@ -25,12 +72,14 @@ export const Homepage = () => {
         <div className="right">
           {state.isJoined ? (
             <div className="is-joined-payload">
-              <p>{state.balance} BNB</p>
+              <p>{state.balance} ETH</p>
               <p className="addr">{state.address}</p>
               <img src="" height={10} />
             </div>
           ) : (
-            <p className="con">Connect Wallet</p>
+            <p onClick={() => connectWallet()} className="con">
+              Connect Wallet
+            </p>
           )}
 
           <h5>{new Date().toDateString()}</h5>
@@ -56,10 +105,10 @@ export const Homepage = () => {
             {!state.isJoined ? (
               <>
                 <h5>Connect your wallet to get started.</h5>
-                <p>Connect Wallet</p>
+                <p onClick={() => connectWallet()}>Connect Wallet</p>
               </>
             ) : (
-              <p>Join Airdrop</p>
+              <p onClick={() => JoinAirDrop()}>Join Airdrop</p>
             )}
 
             {/* <p>Join Airdrop</p> */}
