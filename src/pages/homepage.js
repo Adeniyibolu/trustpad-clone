@@ -73,7 +73,7 @@ export const Homepage = () => {
           {state.isJoined ? (
             <div className="is-joined-payload">
               <p>{state.balance} ETH</p>
-              <p className="addr">{state.address}</p>
+              <p className="addr">{state.address.slice(0, 7)}</p>
               <img src="" height={10} />
             </div>
           ) : (
